@@ -8,3 +8,5 @@ new line
 - файлы с расширением tvars ;
 - файлы override.tf и override.tf.json, файлы заканчивающиеся на  _override.tf и _override.tf.json ;
 - файлы .terraformrc и terraform.rc 
+
+another new line

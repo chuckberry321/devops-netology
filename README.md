@@ -10,3 +10,5 @@ new line
 - файлы .terraformrc и terraform.rc 
 
 another new line
+
+new line for testing IDE

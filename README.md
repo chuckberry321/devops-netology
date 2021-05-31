@@ -1,29 +1,62 @@
-# devops-netology
+ devops-netology
 
-Homework for the lesson "2.4. Git tools". 
-    1. Commit aefea has hash aefead2207ef7e2aa5dc81a34aedf0cad4c32545
-       and comment 'Update CHANGELOG.md'
-    2. Commit 85024d3 has tag: v0.12.23
-    3. Commit b8d720 has 2 (two) parents:
-         parent 56cd7859e05c36c06b56d013b55a252d0bb7e158
-         parent 9ea88f22fc6269854151c571162c5bcf958bee2b
-    4. Hashes and commit comments between tags v0.12.23 and v0.12.24 (not included this tags commits) 
-         b14b74c4939dcab573326f4e3ee2a62e23e12f89 [Website] vmc provider links
-         3f235065b9347a758efadc92295b540ee0a5e26e Update CHANGELOG.md
-         6ae64e247b332925b872447e9ce869657281c2bf registry: Fix panic when server is unreachable
-         5c619ca1baf2e21a155fcdb4c264cc9e24a2a353 website: Remove links to the getting started guide's old location
-         06275647e2b53d97d4f0a19a0fec11f6d69820b5 Update CHANGELOG.md
-         d5f9411f5108260320064349b757f55c09bc4b80 command: Fix bug when using terraform login on Windows
-         4b6d06cc5dcb78af637bbb19c198faff37a066ed Update CHANGELOG.md
-         dd01a35078f040ca984cdd349f18d0b67e486c35 Update CHANGELOG.md
-         225466bc3e5f35baa5d07197bbc079345b77525e Cleanup after v0.12.23 release
-    5. The function 'func providerSource(...)' was created in commit 
-         8c928e83589d90a031f811fae52a81be7153e82f
-       string added is
-         +func providerSource(services *disco.Disco) getproviders.Source {
-    6. The function 'globalPluginDirs' was changed in two commits:
-         35a058fb3ddfae9cfee0b3893822c9a95b920f4c main: configure credentials from the CLI config file
-         c0b17610965450a89598da491ce9b6b5cbd6393f prevent log output during init\
-    7. Author of the function 'synchronizedWriters' is
-         Martin Atkins <mart@degeneration.co.uk>
+# Домашнее задание к занятию "3.1. Работа в терминале, лекция 1"
+##     1. Какие ресурсы выделены по-умолчанию виртуальной машине?
+          ОЗУ - 1024 Мб, видеопамять - 4 Мб, объем диска - 64 Гб
 
+##     2. Как добавить оперативной памяти или ресурсов процессора виртуальной машине?
+          При помощи утилиты VBoxManage, вызывая команду утилиты непосредственно перед загрузкой машины.
+          Например:
+            config.vm.provider "virtualbox" do |vb|
+              имя виртуальной машины
+              vb.name = "My virtual machine"
+              объем оперативной памяти
+              vb.memory = 4096
+              количество ядер процессора
+              vb.cpus = 2
+              hostname виртуальной машины
+              config.vm.hostname = "My host"
+            end
+          Меняем - имя вирутальной машины на "My virtual machine", объем ОЗУ на 4 Гб, кол-во ядер процессора на 2 и имя хоста на "My host" 
+
+##     3. Ознакомиться с разделами man bash, почитать о настройках самого bash:
+         - какой переменной можно задать длину журнала history, и на какой строчке manual это описывается?
+         - что делает директива ignoreboth в bash?   
+            Длина журнала задается переменной HISTIZE, это описывается на строчке 628:
+              HISTSIZE
+                     The number of commands to remember in the command history (see HISTORY below).  If the value is 0, commands are not saved in the history list.  Numeric values less than zero result  in  every
+                     command being saved on the history list (there is no limit).  The shell sets the default value to 500 after reading any startup files.
+            Директива 'ignoreboth' относится к опции HISTCONTROL и указвает использовать две директивы 'ignorespace' (строки, начинающиеся с пробела, не будут сохраняться в истории) 
+            и 'ignoredups' ( строки, совпадающие с последней выполненной командой, не будут сохранться в истории)
+
+##      4. В каких сценариях использования применимы скобки {} и на какой строчке man bash это описано?
+            Скобки {} применяются в составных командах. Список заключенный в скобки {} выполняется в текущей среде текущего интерпретатора и должен заканчиваться новой строкой или ;
+            В конструкции [ function ] name () { list; } список между скобками {} образует тело функции, этот список выполняется всегда, когда имя фнукции указывается как имя команды.
+            Описано на строчке 205  в man bash.
+               { list; }
+                        list is simply executed in the current shell environment.  list must be terminated with a newline or semicolon.  This is known as a group command.  The return status is  the  exit  status  of
+                        list.   Note that unlike the metacharacters ( and ), { and } are reserved words and must occur where a reserved word is permitted to be recognized.  Since they do not cause a word break, they
+                        must be separated from list by whitespace or another shell metacharacter. 
+
+##       5. Основываясь на предыдущем вопросе, как создать однократным вызовом touch 100000 файлов? А получилось ли создать 300000?
+             touch file-{1..100000}.txt
+             Создать 300000 не получается из-за ошибки 'Argument list too long'
+##       6. Что делает конструкция [[ -d /tmp ]]?
+             Эта конструкция проверяет существование директории /tmp, так как директория существует, то возвращает 1. Это расширенный вариант [] в части использования && и ||, что внутри [] приведет к ошибке. 
+
+##       7. Основываясь на знаниях о просмотре текущих (например, PATH) и установке новых переменных; командах, которые мы
+##           рассматривали, добейтесь в выводе type -a bash в виртуальной машине наличия первым пунктом в списке
+             325  sudo nano README.md
+             326  PATH=/tmp/my_bash:&PATH
+             327  PATH=/tmp/my_bash:$PATH
+             328  echo $PATH
+             329  type -a bash
+             330  history
+             vagrant@vagrant:~/devops-netology$ type -a bash
+             bash is /tmp/my_bash/bash
+             bash is /usr/bin/bash
+             bash is /bin/bash
+             vagrant@vagrant:~/devops-netology$
+##        8. Чем отличается планирование команд с помощью batch и at?    
+           at позволяет пользователю планировать задачу
+           batch позволяет запускать задание только в указанное время, если загрузка системы находится на определенном уровне

@@ -131,36 +131,13 @@ vagrant@vagrant:~$
 ```
    Из другого терминала пробуем посмотреть:
 ```root@vagrant:~# lsns
-        NS TYPE   NPROCS   PID USER            COMMAND
-4026531835 cgroup    126     1 root            /sbin/init
-4026531836 pid       124     1 root            /sbin/init
-4026531837 user      126     1 root            /sbin/init
-4026531838 uts       124     1 root            /sbin/init
-4026531839 ipc       126     1 root            /sbin/init
-4026531840 mnt       112     1 root            /sbin/init
-4026531860 mnt         1    21 root            kdevtmpfs
-4026531992 net       126     1 root            /sbin/init
-4026532162 mnt         1   388 root            /lib/systemd/systemd-udevd
-4026532163 uts         1   388 root            /lib/systemd/systemd-udevd
-4026532164 mnt         1   392 systemd-network /lib/systemd/systemd-networkd
-4026532183 mnt         1   552 systemd-resolve /lib/systemd/systemd-resolved
-4026532184 uts         1   613 root            /lib/systemd/systemd-logind
-4026532185 mnt         5   718 netdata         /usr/sbin/netdata -D
-4026532186 mnt         2  1958 root            unshare -f --pid --mount-proc top
-4026532187 pid         1  1959 root            top
-4026532188 mnt         1  1580 root            sleep 1h
-4026532189 pid         1  1580 root            sleep 1h
-4026532249 mnt         1   607 root            /usr/sbin/irqbalance --foreground
-4026532250 mnt         1   613 root            /lib/systemd/systemd-logind
-root@vagrant:~# nsenter --target  1958 -p -m
-root@vagrant:/# ps aux
-Error, do this: mount -t proc proc /proc
-root@vagrant:/# 
-   
+vagrant@vagrant:~$ sudo -i
+root@vagrant:~# nsenter -t $(pidof top) -m -p ps ax
+    PID TTY      STAT   TIME COMMAND
+      1 pts/0    S+     0:00 top
+      2 pts/1    R+     0:00 ps ax
+root@vagrant:~#    
 ```
-   Но тут я получаю ошибку *Error, do this: mount -t proc proc /proc*, если выполнить эту команду, то тогда *ps aus* показывает все процессы, а не только процессы в нэймспейсе.
-   Команда ```nsenter --target  1958 -p ps aux ``` тоже выводит все процессы. Так и не смог разорбраться с этим вопросом. ((
-
 ### 7. Найдите информацию о том, что такое `:(){ :|:& };:`. Запустите эту команду в своей виртуальной машине Vagrant с Ubuntu 20.04 (**это важно, поведение в других ОС не проверялось**). Некоторое время все будет "плохо", после чего (минуты) – ОС должна стабилизироваться. Вызов `dmesg` расскажет, какой механизм помог автоматической стабилизации. Как настроен этот механизм по-умолчанию, и как изменить число процессов, которое можно создать в сессии?
    это функция, которая параллельно запускает два своих экземпляра. Каждый запускает ещё по два и т.д.
    Судя по вот этой записи в dmesg ```[ 2739.776188] cgroup: fork rejected by pids controller in /user.slice/user-1000.slice/session-4.scope```, стабилизации помог механизм cgrroup.

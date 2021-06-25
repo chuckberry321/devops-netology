@@ -9,6 +9,7 @@
 Различаются только имена файлов. Фактически жесткая ссылка это еще одно имя для файла.
 
 ### 14. Прикрепите вывод `lsblk`.
+
 ```root@vagrant:~# lsblk
 NAME                     MAJ:MIN RM  SIZE RO TYPE  MOUNTPOINT
 sda                        8:0    0   64G  0 disk  
@@ -28,7 +29,8 @@ sdc                        8:32   0  2.5G  0 disk
 │ └─md0                    9:0    0    2G  0 raid1 
 └─sdc2                     8:34   0  511M  0 part  
   └─md1                    9:1    0 1018M  0 raid0 
-    └─vg_raid_0-lv_raid0 253:2    0  100M  0 lvm   /tmp/new```
+    └─vg_raid_0-lv_raid0 253:2    0  100M  0 lvm   /tmp/new
+```
 
 ### 18. Подтвердите выводом `dmesg`, что RAID1 работает в деградированном состоянии.
 
@@ -46,7 +48,8 @@ sdc                        8:32   0  2.5G  0 disk
 [11195.101270] ext4 filesystem being mounted at /tmp/new supports timestamps until 2038 (0x7fffffff)
 [11361.722217] md/raid1:md0: Disk failure on sdc1, disabling device.
                md/raid1:md0: Operation continuing on 1 devices.
-root@vagrant:~# ```
+root@vagrant:~# 
+```
 
 В последних строчках выода *dmesg* видно, что RAID1 работает в деградированном состоянии.
  

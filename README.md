@@ -1,119 +1,160 @@
  devops-netology
 
-# Домашнее задание к занятию "3.7. Компьютерные сети, лекция 2"
+# Домашнее задание к занятию "3.8. Компьютерные сети, лекция 3"
 
-### 1. На лекции мы обсудили, что манипулировать размером окна необходимо для эффективного наполнения приемного буфера участников TCP сессии (Flow Control). Подобная проблема в полной мере возникает в сетях с высоким RTT. Например, если вы захотите передать 500 Гб бэкап из региона Юга-Восточной Азии на Восточное побережье США. [Здесь](https://www.cloudping.co/grid) вы можете увидеть и 200 и 400 мс вполне реального RTT. Подсчитайте, какого размера нужно окно TCP чтобы наполнить 1 Гбит/с канал при 300 мс RTT (берем простую ситуацию без потери пакетов). Можно воспользоваться готовым [калькулятором](https://www.switch.ch/network/tools/tcp_throughput/). Ознакомиться с [формулами](https://en.wikipedia.org/wiki/TCP_tuning), по которым работает калькулятор можно, например, на Wiki.
-   Для расчёта максимального размера окна (т.е. максимальный объем данных, которые могут передаваться одним пользователем другому в канале связи) рассчитывается по формуле:
-   *Полоса пропускания (бит/сек) x RTT (круговое время передачи по сети) = размер окна в битах*
-   Для нашего примера получится (1 000 000 000 x 0,3)/8 = 37 500 КБайт 
-
-### 2. Во сколько раз упадет пропускная способность канала, если будет 1% потерь пакетов при передаче?
-   Рассчитать во-сколько раз упадет пропускная способность можно с помощью уравнения Матиса *Максимальная скорость в бит/с = (MSS/RTT) × (1/квадратный корень (p))*, где p - вероятность потери пакета.
-   Согласно стандарту IEEE 802.3ab приемлемым для 1000BaseT коэффициентом битовых ошибок (BER) считается одна ошибка на 1010 битов. Имходя из этого расчитаем скорость без потерь,
-   приняв процент потерь равным 0,0001 %, размер MSS 1460 и RTT 0,02 м/с.
+### 1. ipvs. Если при запросе на VIP сделать подряд несколько запросов (например, `for i in {1..50}; do curl -I -s 172.28.128.200>/dev/null; done `), ответы будут получены почти мгновенно. Тем не менее, в выводе `ipvsadm -Ln` еще некоторое время будут висеть активные `InActConn`. Почему так происходит?
+   В режиме LVS-NUT директор видит все пакеты между клиентом и реальным сервером, поэтому всегда знает точно состояние TCP-соединений. В режимах LVS-DR и LVS-Tun директор не видит пакеты от
+   реального сервера к клиенту. Завершение TCP-соединения происходит, когда кто-либо из них отправит FIN и получит ACK. Затем последует FIN в обратную сторону и получит ACK от инициатора.
+   Если инициирует завершение соединения реальный сервер, то директор сможет понять, что это произошло только по ACK от клиента. Так как директор понимает, что соединение закрыто из частичной 
+   информации, то он будет использовать свою таблицу таймаутов, что объявить, что соединение разорвано. Таким образом в столбце InACtConn для режимов LVS-DR и LVS-Tun будет предпологаемым,
+   а не реальным.
+   Такие службы как http или ftp разрывают соединение, как только получат запрос. Соотвественно записи в столбце ActiveConn сразу уменьшаться, а Запись в столбце InActConn будет до тех пор, 
+   пока не истечет время ожидания соединения.
+   Обысно количество записей InActConn больше, чем количество AcctConn.
+   
+### 2. На лекции мы познакомились отдельно с ipvs и отдельно с keepalived. Воспользовавшись этими знаниями, совместите технологии вместе (VIP должен подниматься демоном keepalived). Приложите конфигурационные файлы, которые у вас получились, и продемонстрируйте работу получившейся конструкции. Используйте для директора отдельный хост, не совмещая его с риалом! Подобная схема возможна, но выходит за рамки рассмотренного на лекции.
+   Схему сети сделал по варианту предложенному Андреем Вахутинским - клиент (адрес 172.28.128.10), два балансера (172.28.128.60 и 172.28.128.90) и два real-сервера (172.28.128.110 и 172.28.128.120). VIP - 172.28.128.200
+   Все адреса в сети /24.
+   Конфигурация 1-го балансера:
 ```
-Cкорость в бит/с = (1460/0,002) × (1/квадратный корень (0,000001))
-Cкорость в бит/с = 730 Мбит/с
+root@Balance1:~# ipvsadm -Ln
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port Scheduler Flags
+  -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+TCP  172.28.128.200:80 rr
+  -> 172.28.128.110:80            Route   1      0          25
+  -> 172.28.128.120:80            Route   1      0          25
+root@Balance1:~# ip -4 addr show eth1 | grep inet
+    inet 172.28.128.60/24 scope global eth1
+    inet 172.28.128.200/24 scope global secondary eth1
+root@Balance1:~# cat /etc/keepalived/keepalived.conf
+vrrp_script chk_keepalive {
+ script "systemctl status keepalived"
+ interval 2 }
+vrrp_instance VI_1 {
+ state MASTER
+ interface eth1
+ virtual_router_id 50
+ priority 100
+ advert_int 1
+ authentication {
+ auth_type PASS
+ auth_pass netology_secret
+ }
+ virtual_ipaddress {
+ 172.28.128.200/24 dev eth1
+ }
+ track_script {
+ chk_keepalive
+ } }
+root@Balance1:~# systemctl status keepalived
+● keepalived.service - Keepalive Daemon (LVS and VRRP)
+     Loaded: loaded (/lib/systemd/system/keepalived.service; enabled; vendor preset: enabled)
+     Active: active (running) since Fri 2021-07-16 18:48:11 UTC; 5min ago
+   Main PID: 13098 (keepalived)
+      Tasks: 2 (limit: 1072)
+     Memory: 2.2M
+     CGroup: /system.slice/keepalived.service
+             ├─13098 /usr/sbin/keepalived --dont-fork
+             └─13109 /usr/sbin/keepalived --dont-fork
+
+Jul 16 18:48:11 Balance1 Keepalived_vrrp[13109]: (Line 12) Truncating auth_pass to 8 characters
+Jul 16 18:48:11 Balance1 Keepalived_vrrp[13109]: WARNING - script `systemctl` resolved by path search to `/usr/bin/systemctl`. Please specify full path.
+Jul 16 18:48:11 Balance1 Keepalived_vrrp[13109]: SECURITY VIOLATION - scripts are being executed but script_security not enabled.
+Jul 16 18:48:11 Balance1 Keepalived_vrrp[13109]: Registering gratuitous ARP shared channel
+Jul 16 18:48:11 Balance1 Keepalived_vrrp[13109]: VRRP_Script(chk_keepalive) succeeded
+Jul 16 18:48:11 Balance1 Keepalived_vrrp[13109]: (VI_1) Entering BACKUP STATE
+Jul 16 18:48:12 Balance1 Keepalived_vrrp[13109]: (VI_1) received lower priority (50) advert from 172.28.128.90 - discarding
+Jul 16 18:48:13 Balance1 Keepalived_vrrp[13109]: (VI_1) received lower priority (50) advert from 172.28.128.90 - discarding
+Jul 16 18:48:14 Balance1 Keepalived_vrrp[13109]: (VI_1) received lower priority (50) advert from 172.28.128.90 - discarding
+Jul 16 18:48:15 Balance1 Keepalived_vrrp[13109]: (VI_1) Entering MASTER STATE
+root@Balance1:~#
 ```
-   Теперь посчитаме максимальную скорость если потери составят 1%, при этом значении величина вероятности потери пакета составит - 0,01
+   Конфигурация 2-го балансера:
 ```
-Cкорость в бит/с = (1460/0,002) × (1/квадратный корень (0,01))
-Cкорость в бит/с = 7,3 Мбит/с
+root@Balance2:~# ipvsadm -Ln
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port Scheduler Flags
+  -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
+TCP  172.28.128.200:80 rr
+  -> 172.28.128.110:80            Route   1      0          0
+  -> 172.28.128.120:80            Route   1      0          0
+root@Balance2:~# ip -4 addr show eth1 | grep inet
+    inet 172.28.128.90/24 scope global eth1
+root@Balance2:~# cat /etc/keepalived/keepalived.conf
+vrrp_script chk_keepalive {
+ script "systemctl status keepalived"
+ interval 2 }
+vrrp_instance VI_1 {
+ state BACKUP
+ interface eth1
+ virtual_router_id 50
+ priority 50
+ advert_int 1
+ authentication {
+ auth_type PASS
+ auth_pass netology_secret
+ }
+ virtual_ipaddress {
+ 172.28.128.200/24 dev eth1
+ }
+ track_script {
+ chk_keepalive
+ } }
+
+root@Balance2:~# systemctl status keepalived
+● keepalived.service - Keepalive Daemon (LVS and VRRP)
+     Loaded: loaded (/lib/systemd/system/keepalived.service; enabled; vendor preset: enabled)
+     Active: active (running) since Fri 2021-07-16 18:54:44 UTC; 1min 48s ago
+   Main PID: 31679 (keepalived)
+      Tasks: 2 (limit: 1072)
+     Memory: 2.0M
+     CGroup: /system.slice/keepalived.service
+             ├─31679 /usr/sbin/keepalived --dont-fork
+             └─31690 /usr/sbin/keepalived --dont-fork
+
+Jul 16 18:54:44 Balance2 Keepalived_vrrp[31690]: Registering Kernel netlink reflector
+Jul 16 18:54:44 Balance2 Keepalived_vrrp[31690]: Registering Kernel netlink command channel
+Jul 16 18:54:44 Balance2 Keepalived_vrrp[31690]: Opening file '/etc/keepalived/keepalived.conf'.
+Jul 16 18:54:44 Balance2 Keepalived_vrrp[31690]: WARNING - default user 'keepalived_script' for script execution does not exist - please create.
+Jul 16 18:54:44 Balance2 Keepalived_vrrp[31690]: (Line 12) Truncating auth_pass to 8 characters
+Jul 16 18:54:44 Balance2 Keepalived_vrrp[31690]: WARNING - script `systemctl` resolved by path search to `/usr/bin/systemctl`. Please specify full path.
+Jul 16 18:54:44 Balance2 Keepalived_vrrp[31690]: SECURITY VIOLATION - scripts are being executed but script_security not enabled.
+Jul 16 18:54:44 Balance2 Keepalived_vrrp[31690]: Registering gratuitous ARP shared channel
+Jul 16 18:54:44 Balance2 Keepalived_vrrp[31690]: VRRP_Script(chk_keepalive) succeeded
+Jul 16 18:54:44 Balance2 Keepalived_vrrp[31690]: (VI_1) Entering BACKUP STATE
+root@Balance2:~#
 ```
-   Вывод - при потерях в 1% пропускная способность сети упадет в 100 раз. 
-
-### 3. Какая  максимальная реальная скорость передачи данных достижима при линке 100 Мбит/с? Вопрос про TCP payload, то есть цифры, которые вы реально увидите в операционной системе в тестах или в браузере при скачивании файлов. Повлияет ли размер фрейма на это?
-   Как мы знаем Ethernet-кадр помимо MSS включает в себя *Ethernet заголовок/FCS – 26 байт, IFG(межкадровое пространство) – 12 байт, IP заголовок – 20 байт, TCP заголовок – 20 байт*.
-   Зная это и беря размер MTU 1500 байт мы можем посчитатьт TCP payload:
-```Max TCP Payload= (MTU–TCP–IP) / (MTU+Ethernet+IFG) = (1500–40) / (1500+26+12) = 94.9 %```
-   Значит максимальная реальная скорость передачи данных при линке 100 Мбит/с составит 94,9 Мбит/с. При изменении размера фрейма, скорость будет меняться прямо пропорционально, так как будет изменяться
-   и количество служебной информации.
-
-### 4. Что на самом деле происходит, когда вы открываете сайт? :)
-### На прошлой лекции был приведен сокращенный вариант ответа на этот вопрос. Теперь вы знаете намного больше, в частности про IP адресацию, DNS и т.д.
-### Опишите максимально подробно насколько вы это можете сделать, что происходит, когда вы делаете запрос `curl -I http://netology.ru` с вашей рабочей станции. Предположим, что arp кеш очищен, в локальном DNS нет закешированных записей.
-   1. Создание файлового дескриптора системным вызовом socket (тип AF_INET то есть IPv4, тип сокета - для дейтаграммной передачи)
-   2. Установка опций созданного сокета.
-   3. Вызов системного вызова connect для подключения к 53 порту
-   4. Broadcast запрос *у кого адрес 10.0.2.3* (для виртуальной машины это адрес для отправки DNS запросов)
-   5. Ответ с данными mac-адреса *Reply 10.0.2.3 is-at 52:54:00:12:35:03 (oui Unknown), length 46*
-   6. Запрос к 10.0.2.3 *какой ip-адрес у хоста netology.ru* (фактически запрос информации об A записи на dns сервере)
-   7. Ответ *IP 10.0.2.3.domain > vagrant.52175: 42757 3/0/1 A 104.22.48.171 (88)* (IP-адрес 104.22.48.171 соответствует netology.ru)
-   8. Создание сокета (тип AF_INET, тип сокета - для потоковой передачи, тип сокета TCP, устанавливается параметром IPPROTO_TCP)
-   9. Установка параметров сокета (NODELAY, KEEPALIVE, KEEPIDLE, KEEPINTVL)
-   10. Вызов системного вызова connect для подключения к 80 порту по адресу 104.22.48.171.
-   11. От клиента к серверу - запрос/установка соединения к хосту по порту 80 (SYN)
-   12. От сервера к клиенту - открытие/подтверждение соединения (SYN, ACK)
-   13. От клиента к серверу - подтверждение (ACK)
-   14. От клиента к серверу - отправка запроса HEAD (системный вызов sendto отправляет запрос HEAD / HTTP/1.1)
-   15. От сервера к клиенту - подтверждение (ACK)
-   16. От сервера к клиенту - сообщение HTTP/1.1 301 Moved Permanently (на клиенте системный вызов recvfrom)
-   17. От клиента к серверу - подтверждение (ACK)
-   18. От клиента к серверу - запрос на закрытие саодинения (FIN, ACK)
-   19. От сервера к клиенту - подтверждение (ACK)
-   20. От сервера к клиенту - подтверждение закрытия (FIN, ACK)
-   21. От клиента к серверу - подтверждение (ACK)  
-
-### 5. Сколько и каких итеративных запросов будет сделано при резолве домена `www.google.co.uk`?
-   При резолве домена будет сделано 3 итеративных запроса.
-   1. Запрос корневому серверу.
-   2. Запрос серверу обслуживающему зону .uk.
-   3. Запрос серверу обслуживающему зону .google.com.
-   Это хорошо видно при выполнении команды *dig +trace -A www.google.co.uk*
-```vagrant@vagrant:~/devops-netology$ dig +trace A www.google.co.uk
-
-; <<>> DiG 9.16.1-Ubuntu <<>> +trace A www.google.co.uk
-;; global options: +cmd
-.                       7098    IN      NS      k.root-servers.net.
-.                       7098    IN      NS      a.root-servers.net.
-.                       7098    IN      NS      d.root-servers.net.
-.                       7098    IN      NS      c.root-servers.net.
-.                       7098    IN      NS      f.root-servers.net.
-.                       7098    IN      NS      m.root-servers.net.
-.                       7098    IN      NS      h.root-servers.net.
-.                       7098    IN      NS      i.root-servers.net.
-.                       7098    IN      NS      l.root-servers.net.
-.                       7098    IN      NS      g.root-servers.net.
-.                       7098    IN      NS      b.root-servers.net.
-.                       7098    IN      NS      j.root-servers.net.
-.                       7098    IN      NS      e.root-servers.net.
-;; Received 262 bytes from 127.0.0.53#53(127.0.0.53) in 0 ms
-
-uk.                     172800  IN      NS      dns1.nic.uk.
-uk.                     172800  IN      NS      dns4.nic.uk.
-uk.                     172800  IN      NS      nsa.nic.uk.
-uk.                     172800  IN      NS      nsd.nic.uk.
-uk.                     172800  IN      NS      nsc.nic.uk.
-uk.                     172800  IN      NS      nsb.nic.uk.
-uk.                     172800  IN      NS      dns3.nic.uk.
-uk.                     172800  IN      NS      dns2.nic.uk.
-uk.                     86400   IN      DS      43876 8 2 A107ED2AC1BD14D924173BC7E827A1153582072394F9272BA37E2353 BC659603
-uk.                     86400   IN      RRSIG   DS 8 1 86400 20210724050000 20210711040000 26838 . BfRM+l/ME3LTTptqB/Wj4mqzuXdpOHbhFv/Zb3h44bCL1+5jsKreCfqx z68d6zyjZE7MiiGKc65NumG5D5a4tsyCX33hALqmeSyC409Yybt+NNaK MGfjkYQpYVpCguFUeWaPA8AIwRkCZYmdaOx1Zcyu1X0y5i85Q01ZDGg2 cfurH6poprQyHX164PIXEa+0z2Om8drR4pE5sG87RgzL7Q5WK4bSfxTl zV7LTKcYRzfsMP/pI/mS574SiEX81f770fkThWg/P+Mw21xynGpCto4o HnfeTFnp+ylLGkJvaxyoB9rhYkxZbndQB8JP5f1TtBypqoVLHW/jB0oz 42AYxg==
-;; Received 800 bytes from 198.41.0.4#53(a.root-servers.net) in 68 ms
-
-google.co.uk.           172800  IN      NS      ns3.google.com.
-google.co.uk.           172800  IN      NS      ns1.google.com.
-google.co.uk.           172800  IN      NS      ns2.google.com.
-google.co.uk.           172800  IN      NS      ns4.google.com.
-G9F1KIIHM8M9VHJK7LRVETBQCEOGJIQP.co.uk. 10800 IN NSEC3 1 1 0 - G9F5O8Q1LBTUKBV4FRD3PU0HUIPAP422 NS SOA RRSIG DNSKEY NSEC3PARAM TYPE65534
-G9F1KIIHM8M9VHJK7LRVETBQCEOGJIQP.co.uk. 10800 IN RRSIG NSEC3 8 3 10800 20210811073752 20210707065809 33621 co.uk. QY+igz4QzQZs1Z0Ev4QKC5uDHOGavqgWrLxiiBQs996mWNFO9AfMVo88 ukEQh4u2LwAP//DcewI4u0pzBWNaV6NfYCl/HRNlkgCBTlMKnLvNbudw IU7fKTu+4UIyNtHSuonmRg5UxUsF2ronCq5P+AuuEpE8OuOwxyGTlcuq ERk=
-6QEK9GOTC8RL190U20RPPM84PHAACO0T.co.uk. 10800 IN NSEC3 1 1 0 - 6QF16S089GRU386I3JOL1T2E5CV61060 NS DS RRSIG
-6QEK9GOTC8RL190U20RPPM84PHAACO0T.co.uk. 10800 IN RRSIG NSEC3 8 3 10800 20210814193412 20210710191552 33621 co.uk. MobKiHIGJ+2QaW49HIskBfAV81l3s/7VS/fptt3nTatZbGIkpHi/d824 4XgbIM4zBTzqYkoqLw0iDEuUsBDNIx1PipFVffnyAbVxcA3SkaSFY8L/ uWADPDUKL5pKUghnGFshmbv42mbuNMjbtr6yTQkXQyIs1itTM7WsYjgc MSE=
-;; Received 678 bytes from 156.154.100.3#53(nsa.nic.uk) in 76 ms
-
-www.google.co.uk.       300     IN      A       142.251.1.94
-;; Received 61 bytes from 216.239.36.10#53(ns3.google.com) in 44 ms
-
-vagrant@vagrant:~/devops-netology$
+   На обоих балансерах потребовалось включить маршрутизацию между интерфейсами
 ```
+root@Balance1:~# sysctl -w net.ipv4.ip_forward=1
+root@Balance1:~# sysctl -w net.ipv4.ip_forward=1
 
-### 6. Сколько доступно для назначения хостам адресов в подсети `/25`? А в подсети с маской `255.248.0.0`. Постарайтесь потренироваться в ручных вычислениях чтобы немного набить руку, не пользоваться калькулятором сразу.
-   В сети /25 зостам доступно 2 в степени 7 = 128 - 2 или 126 хостов, адреса с 0 и 255 в последнем октете хостам не назначаются и являются id сети и broadcast-адресом.
-   В подсети с маской 255.248.0.0 для хостовой отчасти используется 3+8+8=19 бит. 2 в 19 степени - 524288 адреса, значит для нахзначения хостам в подсети с маской 255.248.0.0 доступно 524286 адресов.
+```
+   1-й real-клиент
+```
+root@Real1:~# iptables -t nat -A PREROUTING -p tcp -d 172.28.128.200 --dport  80 -j REDIRECT
+root@Real1:~# wc -l /var/log/nginx/access.log
+80 /var/log/nginx/access.log
+root@Real1:~#
+```
+  2-й real клиент
+```
+root@Real2:~# iptables -t nat -A PREROUTING -p tcp -d 172.28.128.200 --dport  80 -j REDIRECT
+root@Real2:~# wc -l /var/log/nginx/access.log
+79 /var/log/nginx/access.log
+root@Real2:~#
+```
+   На обоих клиентах не добавлял адрес VIR на интерфейс, а воспользовался правилами iptables.
+   Проверял работоспособность cхемы запуская на машине клиенте:
+```
+root@Client:~# curl -I -s 172.28.128.200:80 | grep HTTP
+HTTP/1.1 200 OK
+root@Client:~# for i in {1..50}; do curl -I -s 172.28.128.200>/dev/null; done
+root@Client:~# for i in {1..50}; do curl -I -s 172.28.128.200>/dev/null; done
+root@Client:~#
+```
+   При остановке сервиса keepalived на первом балансере или полном его отключении, все продолжало работать и запросы доходили до клиентов. Не знаю как это показать ((
 
-### 7. В какой подсети больше адресов, в `/23` или `/24`?
-   Больше адресов в подсети /23. В подсети /23 - 2 в 9 степени = 512 адресов, в подести /24 - 2 в 8 степени = 256 адресов.
+### 3. В лекции мы использовали только 1 VIP адрес для балансировки. У такого подхода несколько отрицательных моментов, один из которых – невозможность активного использования нескольких хостов (1 адрес может только переехать с master на standby). Подумайте, сколько адресов оптимально использовать, если мы хотим без какой-либо деградации выдерживать потерю 1 из 3 хостов при входящем трафике 1.5 Гбит/с и физических линках хостов в 1 Гбит/с? Предполагается, что мы хотим задействовать 3 балансировщика в активном режиме (то есть не 2 адреса на 3 хоста, один из которых в обычное время простаивает).
 
-### 8. Получится ли разделить диапазон `10.0.0.0/8` на 128 подсетей по 131070 адресов в каждой? Какая маска будет у таких подсетей?
-   Да, получится (если речь идет о 131072 адресов или 131070 хостов в каждой сети).
-   10.0.0.0/8 - это маска 24 бита. 2 в 24 степени = 16777216 адресов. 16777216/131072=128 подсетей. 128 это 2 в 7 степени. 7 битовая хостовая часть это /15. Значит маска новых подсетей будет /15. 

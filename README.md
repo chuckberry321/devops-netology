@@ -1,173 +1,154 @@
  devops-netology
 
-# Домашнее задание к занятию "4.1. Командная оболочка Bash: Практические навыки"
+# Домашнее задание к занятию "4.2. Использование Python для решения типовых DevOps задач"
 
 ## Обязательные задания
 
 ### 1. Есть скрипт:
-```bash
-a=1
-b=2
-c=a+b
-d=$a+$b
-e=$(($a+$b))
-```
-	* Какие значения переменным c,d,e будут присвоены?
-	* Почему?
-   c=a+b -переменной с будет присвоено текстовое значение "a+b". Так как в bash все переменные текстовые и в данном выражении перед a и b нет символа $Б значит a и b не являются переменным, а являются обычным текстом.
-
-   d=$a+$b - переменной d будет присвоено текстовое значение "1+2". $a и $b в данном случае в выражении используются как переменные, но так как переменные это текстовые, то и резльтатом будет текстовая переменная, а не результат арифметического выражения.
-
-   e=$(($a+$b)) - переменной e будет присвоено значение 3. Конструкция ((...)) в bash используется для выполнения арифметических операций, а символ $ перед перменными a и b, дает понять, что в арифметическом выражении будут использоватся значения этих переменных.
-  
-### 2. На нашем локальном сервере упал сервис и мы написали скрипт, который постоянно проверяет его доступность, записывая дату проверок до тех пор, пока сервис не станет доступным. В скрипте допущена ошибка, из-за которой выполнение не может завершиться, при этом место на Жёстком Диске постоянно уменьшается. Что необходимо сделать, чтобы его исправить:
-	```bash
-	while ((1==1)
-	do
-	curl https://localhost:4757
-	if (($? != 0))
-	then
-	date >> curl.log
-	fi
-	done
+	```python
+    #!/usr/bin/env python3
+	a = 1
+	b = '2'
+	c = a + b
 	```
-   В данном случае скрипт будет работать даже когда сервис станет доступным, потому что отсутствует условие выхода их цикла при успешном результате curl.
-   Так как при успешном результате curl дает 0, нужно добавить условие else  вкотором прервать цикл.
-   В результате скрипт будет выглядеть следующим образом:
+	* Какое значение будет присвоено переменной c?
+   Переменной с не будет присвоенно никакое значение, так как переменные a и b разного типа. Попытка выполнения операции сложения вызовет ошибку *unsupported operand type(s) for +: 'int' and 'str'*.
+	* Как получить для переменной c значение 12?
+   Значение с равное 12, можно получить сложением текстовых переменных со значениями '1' и '2' и переводом резльтат в тип int. Скрипт будет выглядеть следующим образом:
 ```
-  bash
-   while ((1==1))
-   do
-   curl https://localhost:4757
-   if (($? != 0))
-   then
-   date >> curl.log
-   else
-   break
-   fi
-   done
-```
-
-### 3. Необходимо написать скрипт, который проверяет доступность трёх IP: 192.168.0.1, 173.194.222.113, 87.250.250.242 по 80 порту и записывает результат в файл log. Проверять доступность необходимо пять раз для каждого узла.
-   Скрипт постарался сделать более универсальным, чтобы проще было добавить количество проверяемых серверов, просто добавив их в массив и добавил при записи в лог время опроса сервера. 
-
-```
-#!/usr/bin/env bash
-cat /dev/null > availability.log # создаем чистый файл
-servers_array=("http://192.168.0.1:80" "http://173.194.222.113:80" "http://87.250.250.242:80") # саздаем массив для проверки серверов
-for (( i=0; i<${#servers_array[@]}; i++ )) # создаем цикл по размеру массива
-do
-n=5 # количество проверок
-while (($n>0)) # создаем цикл для проверки доступности серверов из массива
-do
-curl -i ${servers_array[$i]} # проверка доступности
-case $? in # case для записи успешная проверка или нет по результату последней команды, включая данные о времени проверки
-   [0] ) echo "`date` - cервер по адресу ${servers_array[$i]} доступен" >> availability.log
-   ;;
-   * ) echo "`date` - cервер по адресу ${servers_array[$i]} не доступен" >> availability.log
-   ;;
-esac
-let " n -= 1 " # уменьшаем счетчик попыток
-sleep 5 # пауза 5 сек
-done
-done
-```
-   Содержимое файла availability.log
-```
-vagrant@vagrant:~/devops-netology$ cat availability.log 
-Mon 02 Aug 2021 03:04:50 PM MSK - cервер по адресу http://192.168.0.1:80 не доступен
-Mon 02 Aug 2021 03:04:57 PM MSK - cервер по адресу http://192.168.0.1:80 не доступен
-Mon 02 Aug 2021 03:05:04 PM MSK - cервер по адресу http://192.168.0.1:80 не доступен
-Mon 02 Aug 2021 03:05:11 PM MSK - cервер по адресу http://192.168.0.1:80 не доступен
-Mon 02 Aug 2021 03:05:18 PM MSK - cервер по адресу http://192.168.0.1:80 не доступен
-Mon 02 Aug 2021 03:05:23 PM MSK - cервер по адресу http://173.194.222.113:80 доступен
-Mon 02 Aug 2021 03:05:28 PM MSK - cервер по адресу http://173.194.222.113:80 доступен
-Mon 02 Aug 2021 03:05:33 PM MSK - cервер по адресу http://173.194.222.113:80 доступен
-Mon 02 Aug 2021 03:05:38 PM MSK - cервер по адресу http://173.194.222.113:80 доступен
-Mon 02 Aug 2021 03:05:43 PM MSK - cервер по адресу http://173.194.222.113:80 доступен
-Mon 02 Aug 2021 03:05:48 PM MSK - cервер по адресу http://87.250.250.242:80 доступен
-Mon 02 Aug 2021 03:05:53 PM MSK - cервер по адресу http://87.250.250.242:80 доступен
-Mon 02 Aug 2021 03:05:59 PM MSK - cервер по адресу http://87.250.250.242:80 доступен
-Mon 02 Aug 2021 03:06:04 PM MSK - cервер по адресу http://87.250.250.242:80 доступен
-Mon 02 Aug 2021 03:06:09 PM MSK - cервер по адресу http://87.250.250.242:80 доступен
-```
-
-### 4. Необходимо дописать скрипт из предыдущего задания так, чтобы он выполнялся до тех пор, пока один из узлов не окажется недоступным. Если любой из узлов недоступен - IP этого узла пишется в файл error, скрипт прерывается
-   
-   Изменил скрипт, добавил запись по ошибке и остановку скрипта через break 2.
-```
-#!/usr/bin/env bash
-cat /dev/null > availability.log # создаем чистый файл логов для успешной проверки
-cat /dev/null > error.log # создаем чистый файл для проверок с ошибкой 
-servers_array=("http://192.168.0.1:80" "http://173.194.222.113:80" "http://87.250.250.242:80") # саздаем массив для проверки серверов
-for (( i=0; i<${#servers_array[@]}; i++ )) # создаем цикл по размеру массива
-do
-n=5 # количество проверок
-while (($n>0)) # создаем цикл для проверки доступности серверов из массива
-do
-curl -i ${servers_array[$i]} # проверка доступности
-case $? in # case для записи успешная проверка или нет по результату последней команды, включая данные о времени проверки
-   [0] ) echo "`date` - cервер по адресу ${servers_array[$i]} доступен" >> availability.log
-   ;;
-   * ) 
-    echo "`date` - cервер по адресу ${servers_array[$i]} не доступен" >> error.log
-    break 2 # прерываем скрипт по ошибке, так как скрипт вложенный используем break 2 
-   ;;
-esac
-let " n -= 1 " # уменьшаем счетчик попыток
-sleep 5 # пауза 5 сек
-done
-done
-```
-   Результат выполнения скрипта и содержание файла error.log
-```
-vagrant@vagrant:~/devops-netology$ ./test.sh 
-curl: (7) Failed to connect to 192.168.0.1 port 80: Connection refused
-vagrant@vagrant:~/devops-netology$ cat error.log 
-Mon 02 Aug 2021 03:33:51 PM MSK - cервер по адресу http://192.168.0.1:80 не доступен
-vagrant@vagrant:~/devops-netology$
+vagrant@vagrant:~/devops-netology$ cat lessson_4.2.py 
+#!/usr/bin/env python3
+a = 1
+b = '2'
+c = int(str(a) + b)
+print(c)
+vagrant@vagrant:~/devops-netology$ chmod 744 lessson_4.2.py
+vagrant@vagrant:~/devops-netology$ ./lessson_4.2.py 
+12
+vagrant@vagrant:~/devops-netology$ 
 ``` 
+	* Как получить для переменной c значение 3?
+   Значение c равное 3 можно получить путем сложения переменных переменных a и b со значениями 1 и 2 соответсвенно, для чего необходимо привести значение b к типу int. Пример крипта:
+```
+vagrant@vagrant:~/devops-netology$ cat lessson_4.2.py 
+#!/usr/bin/env python3
+a = 1
+b = '2'
+c = a + int(b)
+print(c)
+vagrant@vagrant:~/devops-netology$ ./lessson_4.2.py 
+3
+vagrant@vagrant:~/devops-netology$
+```
+   
+
+### 2. Мы устроились на работу в компанию, где раньше уже был DevOps Engineer. Он написал скрипт, позволяющий узнать, какие файлы модифицированы в репозитории, относительно локальных изменений. Этим скриптом недовольно начальство, потому что в его выводе есть не все изменённые файлы, а также непонятен полный путь к директории, где они находятся. Как можно доработать скрипт ниже, чтобы он исполнял требования вашего руководителя?
+
+	```python
+    #!/usr/bin/env python3
+
+    import os
+
+	bash_command = ["cd ~/netology/sysadm-homeworks", "git status"]
+	result_os = os.popen(' && '.join(bash_command)).read()
+    is_change = False
+	for result in result_os.split('\n'):
+        if result.find('modified') != -1:
+            prepare_result = result.replace('\tmodified:   ', '')
+            print(prepare_result)
+            break
+
+	```
+   Не выводятся все измененные файлы из-за опертаора break, который прерывает цикл for при первом же слове *modified* в выоде команды *git status*. Путь к файлу можно втсаивть вместо слова *modified:*
+   Пример скрипта и результата его работы:
+```
+root@vagrant:/home/vagrant/devops-netology# cat lessson_4.2.py 
+#!/usr/bin/env python3
+
+import os
+
+bash_command = ["cd ~/netology/sysadm-homeworks", "git status"]
+result_os = os.popen(' && '.join(bash_command)).read()
+is_change = False
+for result in result_os.split('\n'):
+       if result.find('modified') != -1:
+           prepare_result = result.replace('\tmodified:   ', '~/netology/sysadm-homeworks/')
+           print(prepare_result)
+root@vagrant:/home/vagrant/devops-netology# ./lessson_4.2.py 
+~/netology/sysadm-homeworks/02-git-04-tools/README.md
+~/netology/sysadm-homeworks/README.md
+root@vagrant:/home/vagrant/devops-netology#
+```
+
+### 3. Доработать скрипт выше так, чтобы он мог проверять не только локальный репозиторий в текущей директории, а также умел воспринимать путь к репозиторию, который мы передаём как входной параметр. Мы точно знаем, что начальство коварное и будет проверять работу этого скрипта в директориях, которые не являются локальными репозиториями.
+   Пример доработанного срипта и результат его работы:
+```
+root@vagrant:/home/vagrant/devops-netology# cat lessson_4.2.py 
+#!/usr/bin/env python3
+
+import os, sys
+
+bash_command = ["cd " + sys.argv[1], "git status"]
+result_os = os.popen(' && '.join(bash_command)).read()
+is_change = False
+for result in result_os.split('\n'):
+       if result.find('modified') != -1:
+           prepare_result = result.replace('\tmodified:   ', sys.argv[1])
+           print(prepare_result)
+root@vagrant:/home/vagrant/devops-netology# ./lessson_4.2.py  ~/netology/sysadm-homeworks
+/root/netology/sysadm-homeworks02-git-04-tools/README.md
+/root/netology/sysadm-homeworksREADME.md
+root@vagrant:/home/vagrant/devops-netology# ./lessson_4.2.py  /home/vagrant/devops-netology/
+/home/vagrant/devops-netology/README.md
+root@vagrant:/home/vagrant/devops-netology#
+```
+
+### 4. Наша команда разрабатывает несколько веб-сервисов, доступных по http. Мы точно знаем, что на их стенде нет никакой балансировки, кластеризации, за DNS прячется конкретный IP сервера, где установлен сервис. Проблема в том, что отдел, занимающийся нашей инфраструктурой очень часто меняет нам сервера, поэтому IP меняются примерно раз в неделю, при этом сервисы сохраняют за собой DNS имена. Это бы совсем никого не беспокоило, если бы несколько раз сервера не уезжали в такой сегмент сети нашей компании, который недоступен для разработчиков. Мы хотим написать скрипт, который опрашивает веб-сервисы, получает их IP, выводит информацию в стандартный вывод в виде: <URL сервиса> - <его IP>. Также, должна быть реализована возможность проверки текущего IP сервиса c его IP из предыдущей проверки. Если проверка будет провалена - оповестить об этом в стандартный вывод сообщением: [ERROR] <URL сервиса> IP mismatch: <старый IP> <Новый IP>. Будем считать, что наша разработка реализовала сервисы: drive.google.com, mail.google.com, google.com.
+    Пример скрипта и результат его работы. Пояснения в тексте скрипта:
+```root@vagrant:/home/vagrant/devops-netology# cat lessson_4.2.3.py 
+#!/usr/bin/env python3
+
+import socket, os
+
+server_names = ['drive.google.com', 'mail.google.com', 'google.com']
+# Проверяем есть ли файл, если нет, то создаем
+f = open("servers.log", "a")
+f.close()
+# Открываем файл для чтения и записи
+with open("servers.log", "r+") as f:
+# Проверяем размер файла, чтобы выяснить есть ли в нем данные или он только создан. 
+   if os.path.getsize('servers.log') > 0:
+# читаем данные из файла в массив
+        old_addresses = f.readlines()
+        f.seek(0)
+# Для всех ip-адресов проводим сравнение старых и новых
+        for i in range(len(server_names)):
+# Если адреса не совпадают - выводим предупреждение, если совпадат выводим просто информацию
+            if old_addresses[i].rstrip() != socket.gethostbyname(server_names[i]):
+                print("[ERROR]", server_names[i], "IP mismatch:", old_addresses[i].rstrip(), socket.gethostbyname(server_names[i]))
+            else:
+                print(server_names[i], " - ", socket.gethostbyname(server_names[i]))
+# Сохраняем адреса в файл
+            print(socket.gethostbyname(server_names[i]), file=f)
+# Если файл только создан, сохраняем адреса в файл
+   else:
+       f.seek(0)
+       for i in server_names:
+           print(i, " - ", socket.gethostbyname(i))
+           print(socket.gethostbyname(i), file=f) 
+root@vagrant:/home/vagrant/devops-netology# 
+root@vagrant:/home/vagrant/devops-netology# ./lessson_4.2.3.py 
+drive.google.com  -  64.233.162.194
+mail.google.com  -  173.194.222.18
+google.com  -  142.251.1.113
+root@vagrant:/home/vagrant/devops-netology# ./lessson_4.2.3.py 
+drive.google.com  -  64.233.162.194
+[ERROR] mail.google.com IP mismatch: 173.194.222.17 173.194.222.18
+google.com  -  142.251.1.113
+root@vagrant:/home/vagrant/devops-netology#
+```
+
 ## Дополнительное задание (со звездочкой*) - необязательно к выполнению
 
-Мы хотим, чтобы у нас были красивые сообщения для коммитов в репозиторий. Для этого нужно написать локальный хук для git, который будет проверять, что сообщение в коммите содержит код текущего задания в квадратных скобках и количество символов в сообщении не превышает 30. Пример сообщения: \[04-script-01-bash\] сломал хук.
-   Хук проверил, работает. Так как делаю в своем репозитории домашки, то код задания вписал руками, чтобы можно было проверить работает или нет, по идее код задания нужно было брать из пути в репозито>
-```
-vagrant@vagrant:~/devops-netology$ cat .git/hooks/commit-msg
-#!/usr/bin/env bash
+Так получилось, что мы очень часто вносим правки в конфигурацию своей системы прямо на сервере. Но так как вся наша команда разработки держит файлы конфигурации в github и пользуется gitflow, то нам приходится каждый раз переносить архив с нашими изменениями с сервера на наш локальный компьютер, формировать новую ветку, коммитить в неё изменения, создавать pull request (PR) и только после выполнения Merge мы наконец можем официально подтвердить, что новая конфигурация применена. Мы хотим максимально автоматизировать всю цепочку действий. Для этого нам нужно написать скрипт, который будет в директории с локальным репозиторием обращаться по API к github, создавать PR для вливания текущей выбранной ветки в master с сообщением, которое мы вписываем в первый параметр при обращении к py-файлу (сообщение не может быть пустым). При желании, можно добавить к указанному функционалу создание новой ветки, commit и push в неё изменений конфигурации. С директорией локального репозитория можно делать всё, что угодно. Также, принимаем во внимание, что Merge Conflict у нас отсутствуют и их точно не будет при push, как в свою ветку, так и при слиянии в master. Важно получить конечный результат с созданным PR, в котором применяются наши изменения. 
 
-while read line; do
-    # Пропускаем комментарий        
-    if [ "${line:0:1}" == "#" ]; then
-        continue
-    fi
-    if [[ $line != *"[04-script-01-bash]"* ]]; then
-        echo "В сообщении коммита нет кода текущего задания."
-        exit 1
-    elif [ ${#line} -gt 30 ]; then
-        echo "Сообщение коммита должно быть не более 30 символов."
-        echo "Ваше сообщение содержит ${#line} символов."
-        echo "Сообщение: ${line}"
-        exit 1
-    fi
-done < "${1}"
-
-exit 0
-vagrant@vagrant:~/devops-netology$
-```
-   Результат проверки хука:
-```
-vagrant@vagrant:~/devops-netology$ git commit -am '[04-script-01-bashswsfegfwsghwrhewrherujhwue5ujwer5ujwr465ui46j6'
-В сообщении коммита нет кода текущего задания.
-vagrant@vagrant:~/devops-netology$ git commit -am '[04-script-01-bash]swsfegfwsghwrhewrherujhwue5ujwer5ujwr465ui46j6'
-Сообщение коммита должно быть не более 30 символов.
-Ваше сообщение содержит 65 символов.
-Сообщение: [04-script-01-bash]swsfegfwsghwrhewrherujhwue5ujwer5ujwr465ui46j6      
-vagrant@vagrant:~/devops-netology$ git commit -am '[04-script-01-bash] сломал хук'
-[main ef9eae9] [04-script-01-bash] сломал хук
- 1 file changed, 163 insertions(+), 399 deletions(-)
- rewrite README.md (99%)
-vagrant@vagrant:~/devops-netology$ git reset HEAD~
-Unstaged changes after reset:
-M       README.md
-vagrant@vagrant:~/devops-netology$                 
-```

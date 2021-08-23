@@ -39,20 +39,60 @@
  
 ### 2. В прошлый рабочий день мы создавали скрипт, позволяющий опрашивать веб-сервисы и получать их IP. К уже реализованному функционалу нам нужно добавить возможность записи JSON и YAML файлов, описывающих наши сервисы. Формат записи JSON по одному сервису: { "имя сервиса" : "его IP"}. Формат записи YAML по одному сервису: - имя сервиса: его IP. Если в момент исполнения скрипта меняется IP у сервиса - он должен так же поменяться в yml и json файле.
 
-## Дополнительное задание (со звездочкой*) - необязательно к выполнению
+   Пример скрипта и вывод данных:
 
-Так как команды в нашей компании никак не могут прийти к единому мнению о том, какой формат разметки данных использовать: JSON или YAML, нам нужно реализовать парсер из одного формата в другой. Он должен уметь:
-   * Принимать на вход имя файла
-   * Проверять формат исходного файла. Если файл не json или yml - скрипт должен остановить свою работу
-   * Распознавать какой формат данных в файле. Считается, что файлы *.json и *.yml могут быть перепутаны
-   * Перекодировать данные из исходного формата во второй доступный (из JSON в YAML, из YAML в JSON)
-   * При обнаружении ошибки в исходном файле - указать в стандартном выводе строку с ошибкой синтаксиса и её номер
-   * Полученный файл должен иметь имя исходного файла, разница в наименовании обеспечивается разницей расширения файлов
+```
+vagrant@vagrant:~/devops-netology$ car servers.json 
+-bash: car: command not found
+vagrant@vagrant:~/devops-netology$ cat lessson_4.3.py 
+vagrant@vagrant:~/devops-netology$ cat lessson_4.3.py 
+#!/usr/bin/env python3
 
----
+import socket, os, json, yaml
 
-### Как сдавать задания
-
-Выполненное домашнее задание пришлите ссылкой на .md-файл в вашем репозитории.
-
----
+server_names = ['drive.google.com', 'mail.google.com', 'google.com']
+# Проверяем есть ли файл, если нет, то создаем
+f = open("servers.log", "a")
+f.close()
+# Открываем файл для чтения
+with open("servers.log", "r+") as f:
+# Проверяем размер файла, чтобы выяснить есть ли в нем данные или он только создан. 
+   if os.path.getsize('servers.log') > 0:
+# читаем данные из файла в массив
+        old_addresses = f.readlines()       
+        f.seek(0)
+# Убираем \n
+        for i in range(len(old_addresses)):
+            old_addresses[i] = old_addresses[i].rstrip()
+# создаем словарь
+        servers_dict = dict(zip(server_names, old_addresses))
+# Для всех ip-адресов проводим сравнение старых и новых
+        for i in range(len(servers_dict)):
+# Если адреса не совпадают - выводим предупреждение, если совпадат выводим просто информацию
+            ip_address = socket.gethostbyname(server_names[i])
+            if old_addresses[i] != ip_address:
+                print("[ERROR]", server_names[i], "IP mismatch:", old_addresses[i], ip_address)
+            else:
+                print(server_names[i], " - ", ip_address)
+# Сохраняем адреса в файл
+            print(ip_address, file=f)
+# Если файл только создан, сохраняем адреса в файл
+   else:
+       f.seek(0)
+       for i in server_names:
+           print(i, " - ", socket.gethostbyname(i))
+           print(socket.gethostbyname(i), file=f)
+# Сохраняем данные json-формате
+with open("servers.json", "w") as f:
+    f.write(json.dumps(servers_dict))
+# Сохраняем данные в yaml-формате
+with open("servers.yml", "w") as f:
+    f.write(yaml.dump(servers_dict))
+vagrant@vagrant:~/devops-netology$ cat servers.json 
+{"drive.google.com": "64.233.163.194", "mail.google.com": "142.251.1.19", "google.com": "173.194.73.101"}
+vagrant@vagrant:~/devops-netology$ cat servers.yml 
+drive.google.com: 64.233.163.194
+google.com: 173.194.73.101
+mail.google.com: 142.251.1.19
+vagrant@vagrant:~/devops-netology$ 
+```

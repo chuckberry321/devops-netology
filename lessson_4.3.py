@@ -2,6 +2,7 @@
 
 import socket, os, json, yaml
 
+servers_dict = list()
 server_names = ['drive.google.com', 'mail.google.com', 'google.com']
 # Проверяем есть ли файл, если нет, то создаем
 f = open("servers.log", "a")
@@ -16,8 +17,9 @@ with open("servers.log", "r+") as f:
 # Убираем \n
         for i in range(len(old_addresses)):
             old_addresses[i] = old_addresses[i].rstrip()
+            servers_dict.append({server_names[i]: old_addresses[i]})
 # создаем словарь
-        servers_dict = dict(zip(server_names, old_addresses))
+#        servers_dict = dict(zip(server_names, old_addresses))
 # Для всех ip-адресов проводим сравнение старых и новых
         for i in range(len(servers_dict)):
 # Если адреса не совпадают - выводим предупреждение, если совпадат выводим просто информацию

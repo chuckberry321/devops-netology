@@ -35,21 +35,19 @@
     ]
 }
 ```
-   Наличие горизонтального TABa значении ключа "info" ошибкой, как мне кажется, не является.
+   Наличие горизонтального TABa в значении ключа "info" ошибкой, как мне кажется, не является.
  
 ### 2. В прошлый рабочий день мы создавали скрипт, позволяющий опрашивать веб-сервисы и получать их IP. К уже реализованному функционалу нам нужно добавить возможность записи JSON и YAML файлов, описывающих наши сервисы. Формат записи JSON по одному сервису: { "имя сервиса" : "его IP"}. Формат записи YAML по одному сервису: - имя сервиса: его IP. Если в момент исполнения скрипта меняется IP у сервиса - он должен так же поменяться в yml и json файле.
 
    Пример скрипта и вывод данных:
 
 ```
-vagrant@vagrant:~/devops-netology$ car servers.json 
--bash: car: command not found
-vagrant@vagrant:~/devops-netology$ cat lessson_4.3.py 
 vagrant@vagrant:~/devops-netology$ cat lessson_4.3.py 
 #!/usr/bin/env python3
 
 import socket, os, json, yaml
 
+servers_dict = list()
 server_names = ['drive.google.com', 'mail.google.com', 'google.com']
 # Проверяем есть ли файл, если нет, то создаем
 f = open("servers.log", "a")
@@ -64,8 +62,9 @@ with open("servers.log", "r+") as f:
 # Убираем \n
         for i in range(len(old_addresses)):
             old_addresses[i] = old_addresses[i].rstrip()
+            servers_dict.append({server_names[i]: old_addresses[i]})
 # создаем словарь
-        servers_dict = dict(zip(server_names, old_addresses))
+#        servers_dict = dict(zip(server_names, old_addresses))
 # Для всех ip-адресов проводим сравнение старых и новых
         for i in range(len(servers_dict)):
 # Если адреса не совпадают - выводим предупреждение, если совпадат выводим просто информацию
@@ -88,11 +87,15 @@ with open("servers.json", "w") as f:
 # Сохраняем данные в yaml-формате
 with open("servers.yml", "w") as f:
     f.write(yaml.dump(servers_dict))
+vagrant@vagrant:~/devops-netology$ ./lessson_4.3.py 
+drive.google.com  -  64.233.163.194
+mail.google.com  -  142.251.1.18
+google.com  -  173.194.73.113
 vagrant@vagrant:~/devops-netology$ cat servers.json 
-{"drive.google.com": "64.233.163.194", "mail.google.com": "142.251.1.19", "google.com": "173.194.73.101"}
+[{"drive.google.com": "64.233.163.194"}, {"mail.google.com": "142.251.1.18"}, {"google.com": "173.194.73.113"}]
 vagrant@vagrant:~/devops-netology$ cat servers.yml 
-drive.google.com: 64.233.163.194
-google.com: 173.194.73.101
-mail.google.com: 142.251.1.19
+- drive.google.com: 64.233.163.194
+- mail.google.com: 142.251.1.18
+- google.com: 173.194.73.113
 vagrant@vagrant:~/devops-netology$ 
 ```

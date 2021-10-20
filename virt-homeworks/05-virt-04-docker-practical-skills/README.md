@@ -84,7 +84,9 @@ EXPOSE 8080
 CMD ["java", "-jar", "/usr/lib/jenkins/jenkins.war"]
 ```
   [Скриншот лога:](https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/05-virt-04-docker-practical-skills/lesson2/lesson2_log.png)
-  [Скриншот веб-интерфейса] (https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/05-virt-04-docker-practical-skills/lesson2/lesson2.png)
+
+  [Скриншот веб-интерфейса](https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/05-virt-04-docker-practical-skills/lesson2/lesson2.png)
+
   Ссылка на образ:
   https://hub.docker.com/repository/docker/chuckberry321/lesson2/tags
 
@@ -108,7 +110,9 @@ EXPOSE 8080
 CMD ["java", "-jar", "/usr/share/jenkins/jenkins.war"]
 ```
   [Скриншот лога:](https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/05-virt-04-docker-practical-skills/lesson2.2/lesson2.2_log.png)
-  [Скриншот веб-интерфейса] (https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/05-virt-04-docker-practical-skills/lesson2.2/lesson2.2.png)
+
+  [Скриншот веб-интерфейса](https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/05-virt-04-docker-practical-skills/lesson2.2/lesson2.2.png)
+
   Ссылка на образ:
   https://hub.docker.com/repository/docker/chuckberry321/lesson2.2/tags 
 

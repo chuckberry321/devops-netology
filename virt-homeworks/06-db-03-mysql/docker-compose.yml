@@ -1,0 +1,13 @@
+version: "3.5"
+
+services:
+  db:
+    image: mysql:8
+    container_name: myslq
+    restart: always
+    volumes:
+      - ~/mysql_db:/var/lib/mysql
+      - ~/mysql_backup:/etc/backup
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=test_db

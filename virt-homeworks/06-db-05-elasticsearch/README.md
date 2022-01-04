@@ -225,23 +225,26 @@ yellow open   ind-2            3SgmyUwSTcCuAMPdrDyVDA   2   1          0        
 
   **Ответ:*
 
-- Директория создаетя в Задании 1 в Dockerfile
+- Директория создается в Задании 1 в Dockerfile
 
 - Регистрация директории
 ```
-[elastic@4a1bf2305b5b /]$ curl -X DELETE 'http://localhost:9200/ind-1?pretty'
+[elastic@4a1bf2305b5b /]$ curl -XPOST localhost:9200/_snapshot/netology_backup?pretty -H 'Content-Type: application/json' -d'{"type": "fs", "settings": { "location":"/elasticsearch-7.16.2/snapshots" }}'
 {
   "acknowledged" : true
 }
-[elastic@4a1bf2305b5b /]$ curl -X DELETE 'http://localhost:9200/ind-2?pretty'
+
+[elastic@4a1bf2305b5b /]$ curl -X GET 'http://localhost:9200/_snapshot/netology_backup?pretty'
 {
-  "acknowledged" : true
+  "netology_backup" : {
+    "type" : "fs",
+    "uuid" : "iwWL8CakRleFZEdsevFjtw",
+    "settings" : {
+      "location" : "/elasticsearch-7.16.2/snapshots"
+    }
+  }
 }
-[elastic@4a1bf2305b5b /]$ curl -X DELETE 'http://localhost:9200/ind-3?pretty'
-{
-  "acknowledged" : true
-}
-[elastic@4a1bf2305b5b /]$
+[elastic@4a1bf2305b5b snapshots]$
 ```
 
 - Создание индекса

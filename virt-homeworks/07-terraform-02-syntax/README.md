@@ -118,7 +118,7 @@ root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform#
   При помощи CloudFormation
 ```
 
-1. Ссылку на репозиторий с исходной конфигурацией терраформа.
+2. Ссылка на репозиторий с исходной конфигурацией терраформа.
 
   <https://github.com/chuckberry321/devops-netology/tree/main/terraform/main.tf>
 
@@ -178,7 +178,7 @@ output "internal_ip_address_vm_1" {
 output "external_ip_address_vm_1" {
   value = yandex_compute_instance.vm-1.network_interface.0.nat_ip_address
 }
-'''
+```
 
 - данные пользователя для доступа к ВМ. Файл meta.txt
 ```
@@ -193,7 +193,8 @@ users:
 root@vagrant:/home/vagrant/devops-netology/terraform#
 ```
 
-- Результат выполнения ![terraform apply](https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/07-terraform-02-syntax/screenshot.png)
+- Результат выполнения terraform apply
+  (https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/07-terraform-02-syntax/screenshot.png)
 
 
 ### Как cдавать задание

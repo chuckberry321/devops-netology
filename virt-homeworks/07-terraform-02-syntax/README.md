@@ -193,7 +193,8 @@ users:
 root@vagrant:/home/vagrant/devops-netology/terraform#
 ```
 
-- Результат выполнения ![terraform apply](https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/07-terraform-02-syntax/screenshot.png)
+- Результат выполнения terraform apply
+  (https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/07-terraform-02-syntax/screenshot.png)
 
 
 ### Как cдавать задание

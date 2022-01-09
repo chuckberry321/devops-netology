@@ -118,7 +118,7 @@ root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform#
   При помощи CloudFormation
 ```
 
-1. Ссылку на репозиторий с исходной конфигурацией терраформа.
+2. Ссылка на репозиторий с исходной конфигурацией терраформа.
 
   <https://github.com/chuckberry321/devops-netology/tree/main/terraform/main.tf>
 

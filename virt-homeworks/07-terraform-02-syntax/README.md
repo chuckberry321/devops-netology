@@ -120,7 +120,7 @@ root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform#
 
 2. Ссылка на репозиторий с исходной конфигурацией терраформа.
 
-  <https://github.com/chuckberry321/devops-netology/tree/main/terraform/main.tf>
+  <https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-02-syntax/yandex-cloud-terraform>
 
 - main.tf 
 ```

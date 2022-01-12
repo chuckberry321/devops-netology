@@ -38,7 +38,7 @@ AWS предоставляет достаточно много бесплатн�
 не указывать авторизационный токен в коде, а терраформ провайдер брал его из переменных окружений.
 
   **Ответ:**
-'''
+```
 root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform# yc iam service-account create --name chuckberry321 --folder-id b1gq4sejntiisjvcq7m4
 id: aje74imcvvvk3cqch2gm
 folder_id: b1gq4sejntiisjvcq7m4
@@ -51,10 +51,10 @@ service_account_id: aje74imcvvvk3cqch2gm
 created_at: "2022-01-08T13:44:41.405960673Z"
 key_algorithm: RSA_2048
 
-root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform# export YC_CLOUD_ID=`yc config get cloud-id`
-root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform# export YC_FOLDER_ID=`yc config get folder-id`
-root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform# export YC_TOKEN=`yc config get token`
-root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform# export YC_ZONE=`yc config get compute-default-zone`
+root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform# export YC_CLOUD_ID='yc config get cloud-id'
+root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform# export YC_FOLDER_ID='yc config get folder-id'
+root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform# export YC_TOKEN='yc config get token'
+root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform# export YC_ZONE='yc config get compute-default-zone'
 root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform# yc config list
 token: AQAAAABRrvZjAATuwSppXfDalUbCjt1DtaK5iA0
 cloud-id: b1guvq2fdi6hehnnq8mg
@@ -77,7 +77,7 @@ resource "yandex_compute_instance" "vm-1" {
   name = "terraform1"
 }
 root@vagrant:/home/vagrant/devops-netology/yandex-cloud-terraform#
-'''
+```
 
 
 ## Задача 2. Создание aws ec2 или yandex_compute_instance через терраформ. 

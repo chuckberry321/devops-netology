@@ -583,7 +583,7 @@ root@vagrant:/home/vagrant/devops-netology/terraform#
 ```
 
 - Ссылка на репозиторий с файлами terraform
-
+https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-03-basic/terraform
 ---
 
 ### Как cдавать задание

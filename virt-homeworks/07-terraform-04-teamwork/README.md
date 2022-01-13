@@ -37,8 +37,8 @@
 В качестве результата приложите ссылку на файлы `server.yaml` и `atlantis.yaml`.
 
   **Ответ:**  
-  [server.yml](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/atlantis/server.yml)  
-  [atlantis.yml](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/atlantis/atlantis.yml)  
+  [server.yml](https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/07-terraform-04-teamwork/atlantis/server.yml)  
+  [atlantis.yml](https://github.com/chuckberry321/devops-netology/blob/main/virt-homeworks/07-terraform-04-teamwork/atlantis/atlantis.yml)  
 
 
 ## Задача 3. Знакомство с каталогом модулей. 

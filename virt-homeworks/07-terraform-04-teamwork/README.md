@@ -14,9 +14,9 @@
 
 В качестве результата задания приложите снимок экрана с успешным применением конфигурации.
 
-  **Ответ:** 
-  [Plan](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/terraform_cloud_plan.png) 
-  [Apply](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/terraform_cloud_plan.png) 
+  **Ответ:**  
+  [Plan](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/terraform_cloud_plan.png)  
+  [Apply](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/terraform_cloud_plan.png)  
 
 ## Задача 2. Написать серверный конфиг для атлантиса. 
 
@@ -36,9 +36,9 @@
 
 В качестве результата приложите ссылку на файлы `server.yaml` и `atlantis.yaml`.
 
-  **Ответ:** 
-  [server.yml](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/atlantis/server.yml) 
-  [atlantis.yml](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/atlantis/atlantis.yml) 
+  **Ответ:**  
+  [server.yml](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/atlantis/server.yml)  
+  [atlantis.yml](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/atlantis/atlantis.yml)  
 
 
 ## Задача 3. Знакомство с каталогом модулей. 
@@ -52,8 +52,9 @@
 
 В качестве результата задания приложите ссылку на созданный блок конфигураций. 
 
-  **Ответ:** 
-  [Файл main.tf](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/main.tf)
+  **Ответ:**  
+  Скорее всего модуль буду использовать, это, возможно, сократит время при написании конфигурационных файлов terraform.  
+  [Файл main.tf](https://github.com/chuckberry321/devops-netology/tree/main/virt-homeworks/07-terraform-04-teamwork/main.tf)  
 
 ---
 

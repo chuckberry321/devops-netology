@@ -93,9 +93,9 @@ f68834cec4ac   pycontribs/ubuntu:latest   "sleep 6000000000"   13 seconds ago   
 61ee974f0b23   pycontribs/centos:7        "sleep 6000000000"   2 minutes ago    Up 2 minutes             centos7
 vagrant@vagrant:~$
 ```
-4. Проведите запуск playbook на окружении из `prod.yml`. Зафиксируйте полученные значения `some_fact` для каждого из `managed host`.
+4. Проведите запуск playbook на окружении из `prod.yml`. Зафиксируйте полученные значения `some_fact` для каждого из `managed host`.   
   **Ответ:**   
-  some_fact имеет занчения - CentOS для centos7 и Ubuntu для ubuntu.
+  some_fact имеет значения - CentOS для centos7 и Ubuntu для ubuntu.
 ```linux
 vagrant@vagrant:~/netology-playbook$ ansible-playbook -i inventory/prod.yml site.yml
 

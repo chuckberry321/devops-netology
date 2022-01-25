@@ -6,9 +6,9 @@
 3. Скачайте [playbook](./playbook/) из репозитория с домашним заданием и перенесите его в свой репозиторий.
 
 ## Основная часть
-1. Попробуйте запустить playbook на окружении из `test.yml`, зафиксируйте какое значение имеет факт `some_fact` для указанного хоста при выполнении playbook'a.
-  **Ответ:**
-  some_fact имеет значение 12
+1. Попробуйте запустить playbook на окружении из `test.yml`, зафиксируйте какое значение имеет факт `some_fact` для указанного хоста при выполнении playbook'a.   
+  **Ответ:**   
+  some_fact имеет значение 12   
 ```linux
 vagrant@vagrant:~/netology-playbook$ ansible-playbook -i inventory/test.yml site.yml
 
@@ -33,14 +33,102 @@ localhost                  : ok=3    changed=0    unreachable=0    failed=0    s
 vagrant@vagrant:~/netology-playbook$
 ```
 
-2. Найдите файл с переменными (group_vars) в котором задаётся найденное в первом пункте значение и поменяйте его на 'all default fact'.
+2. Найдите файл с переменными (group_vars) в котором задаётся найденное в первом пункте значение и поменяйте его на 'all default fact'.   
   **Ответ:**
-```text
+```linux
+vagrant@vagrant:~/netology-playbook$ cat group_vars/all/examp.yml
+---
+  some_fact: all default fact
+vagrant@vagrant:~/netology-playbook$ ansible-playbook -i inventory/test.yml site.yml
 
+PLAY [Print os facts] ***********************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] **********************************************************************************************************************************************************************************************************************
+ok: [localhost]
+
+TASK [Print OS] *****************************************************************************************************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": "Ubuntu"
+}
+
+TASK [Print fact] ***************************************************************************************************************************************************************************************************************************
+ok: [localhost] => {
+    "msg": "all default fact"
+}
+
+PLAY RECAP **********************************************************************************************************************************************************************************************************************************
+localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+vagrant@vagrant:~/netology-playbook$
 ```
-3. Воспользуйтесь подготовленным (используется `docker`) или создайте собственное окружение для проведения дальнейших испытаний.
+3. Воспользуйтесь подготовленным (используется `docker`) или создайте собственное окружение для проведения дальнейших испытаний.   
+  **Ответ:**   
+```linux
+vagrant@vagrant:~$ docker run --name centos7 -d pycontribs/centos:7 sleep 6000000000
+Unable to find image 'pycontribs/centos:7' locally
+7: Pulling from pycontribs/centos
+2d473b07cdd5: Pull complete
+43e1b1841fcc: Pull complete
+85bf99ab446d: Pull complete
+Digest: sha256:b3ce994016fd728998f8ebca21eb89bf4e88dbc01ec2603c04cc9c56ca964c69
+Status: Downloaded newer image for pycontribs/centos:7
+61ee974f0b23ff99482c108d16b94b398abc4db88c48680f4415abbffc2fa118
+vagrant@vagrant:~$ docker ps
+CONTAINER ID   IMAGE                 COMMAND              CREATED         STATUS         PORTS     NAMES
+61ee974f0b23   pycontribs/centos:7   "sleep 6000000000"   8 seconds ago   Up 7 seconds             centos7
+vagrant@vagrant:~$ docker run --name ubuntu -d pycontribs/ubuntu:latest sleep 6000000000
+Unable to find image 'pycontribs/ubuntu:latest' locally
+latest: Pulling from pycontribs/ubuntu
+423ae2b273f4: Pull complete
+de83a2304fa1: Pull complete
+f9a83bce3af0: Pull complete
+b6b53be908de: Pull complete
+7378af08dad3: Pull complete
+Digest: sha256:dcb590e80d10d1b55bd3d00aadf32de8c413531d5cc4d72d0849d43f45cb7ec4
+Status: Downloaded newer image for pycontribs/ubuntu:latest
+f68834cec4acdd93eb09b9651b6994362f210d32c5ab62fb067303807a15fae6
+vagrant@vagrant:~$ docker ps
+CONTAINER ID   IMAGE                      COMMAND              CREATED          STATUS         PORTS     NAMES
+f68834cec4ac   pycontribs/ubuntu:latest   "sleep 6000000000"   13 seconds ago   Up 5 seconds             ubuntu
+61ee974f0b23   pycontribs/centos:7        "sleep 6000000000"   2 minutes ago    Up 2 minutes             centos7
+vagrant@vagrant:~$
+```
 4. Проведите запуск playbook на окружении из `prod.yml`. Зафиксируйте полученные значения `some_fact` для каждого из `managed host`.
+  **Ответ:**   
+  some_fact имеет занчения - CentOS для centos7 и Ubuntu для ubuntu.
+```linux
+vagrant@vagrant:~/netology-playbook$ ansible-playbook -i inventory/prod.yml site.yml
+
+PLAY [Print os facts] ***********************************************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] **********************************************************************************************************************************************************************************************************************
+ok: [ubuntu]
+ok: [centos7]
+
+TASK [Print OS] *****************************************************************************************************************************************************************************************************************************
+ok: [centos7] => {
+    "msg": "CentOS"
+}
+ok: [ubuntu] => {
+    "msg": "Ubuntu"
+}
+
+TASK [Print fact] ***************************************************************************************************************************************************************************************************************************
+ok: [centos7] => {
+    "msg": "el"
+}
+ok: [ubuntu] => {
+    "msg": "deb"
+}
+
+PLAY RECAP **********************************************************************************************************************************************************************************************************************************
+centos7                    : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+ubuntu                     : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+vagrant@vagrant:~/netology-playbook$
+```
 5. Добавьте факты в `group_vars` каждой из групп хостов так, чтобы для `some_fact` получились следующие значения: для `deb` - 'deb default fact', для `el` - 'el default fact'.
+
 6.  Повторите запуск playbook на окружении `prod.yml`. Убедитесь, что выдаются корректные значения для всех хостов.
 7. При помощи `ansible-vault` зашифруйте факты в `group_vars/deb` и `group_vars/el` с паролем `netology`.
 8. Запустите playbook на окружении `prod.yml`. При запуске `ansible` должен запросить у вас пароль. Убедитесь в работоспособности.

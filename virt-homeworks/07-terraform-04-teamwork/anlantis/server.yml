@@ -1,0 +1,21 @@
+repos:
+- id: https://github.com/chuckberry321/devops-netology
+
+  apply_requirements: [approved, mergeable]
+
+  workflow: custom
+
+  allowed_overrides: [workflow]
+
+  allow_custom_workflows: true
+
+workflows:
+  custom:
+    plan:
+      steps:
+      - init
+      - plan:
+          extra_args: ["-lock", "false"]
+    apply:
+      steps:
+      - apply

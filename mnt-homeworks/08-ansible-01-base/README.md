@@ -347,9 +347,6 @@ Decryption successful
 vagrant@vagrant:~/netology-playbook$ ansible-vault decrypt group_vars/deb/examp.yml
 Vault password:
 Decryption successful
-cat: decrypt: No such file or directory
----
-  some_fact: "el default fact"
 vagrant@vagrant:~/netology-playbook$ cat group_vars/el/examp.yml
 ---
   some_fact: "el default fact"
@@ -523,7 +520,7 @@ vagrant@vagrant:~/netology-playbook$
 vagrant@vagrant:~/netology-playbook$ cat script.sh
 #!/bin/bash
 
-# Проевряем запущены или нет контейнеры и запускаем их
+# Проверяем запущены или нет контейнеры и запускаем их
 
 if [ `docker ps | grep -c -i -e "fedora"` -eq 0 ] ; then
   docker start fedora
